@@ -1,0 +1,19 @@
+{
+    "devices":{
+        "ubuntu-lab-01":{
+            "trust": "trusted",
+            ",managed": true,
+            "os": "ubuntu"
+        },
+        "macbook-lab-01":{
+            "trust": "trusted",
+            "managed": true,
+            "os": "macos"
+        },
+        "windows-lab-01":{
+            "trust": "untrusted",
+            "managed": false,
+            "os": "windows"
+        }
+    }
+}
