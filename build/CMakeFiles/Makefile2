@@ -63,11 +63,11 @@ CMAKE_BINARY_DIR = /Users/daominhnguyet/Desktop/Lab_main/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/Lab_main.dir/all
+all: CMakeFiles/ztas.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
-codegen: CMakeFiles/Lab_main.dir/codegen
+codegen: CMakeFiles/ztas.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -75,40 +75,40 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/Lab_main.dir/clean
+clean: CMakeFiles/ztas.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/Lab_main.dir
+# Target rules for target CMakeFiles/ztas.dir
 
 # All Build rule for target.
-CMakeFiles/Lab_main.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Lab_main.dir/build.make CMakeFiles/Lab_main.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Lab_main.dir/build.make CMakeFiles/Lab_main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/daominhnguyet/Desktop/Lab_main/build/CMakeFiles --progress-num=1,2 "Built target Lab_main"
-.PHONY : CMakeFiles/Lab_main.dir/all
+CMakeFiles/ztas.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ztas.dir/build.make CMakeFiles/ztas.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ztas.dir/build.make CMakeFiles/ztas.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/daominhnguyet/Desktop/Lab_main/build/CMakeFiles --progress-num=1,2 "Built target ztas"
+.PHONY : CMakeFiles/ztas.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/Lab_main.dir/rule: cmake_check_build_system
+CMakeFiles/ztas.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/daominhnguyet/Desktop/Lab_main/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/Lab_main.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/ztas.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/daominhnguyet/Desktop/Lab_main/build/CMakeFiles 0
-.PHONY : CMakeFiles/Lab_main.dir/rule
+.PHONY : CMakeFiles/ztas.dir/rule
 
 # Convenience name for target.
-Lab_main: CMakeFiles/Lab_main.dir/rule
-.PHONY : Lab_main
+ztas: CMakeFiles/ztas.dir/rule
+.PHONY : ztas
 
 # codegen rule for target.
-CMakeFiles/Lab_main.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Lab_main.dir/build.make CMakeFiles/Lab_main.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/daominhnguyet/Desktop/Lab_main/build/CMakeFiles --progress-num=1,2 "Finished codegen for target Lab_main"
-.PHONY : CMakeFiles/Lab_main.dir/codegen
+CMakeFiles/ztas.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ztas.dir/build.make CMakeFiles/ztas.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/daominhnguyet/Desktop/Lab_main/build/CMakeFiles --progress-num=1,2 "Finished codegen for target ztas"
+.PHONY : CMakeFiles/ztas.dir/codegen
 
 # clean rule for target.
-CMakeFiles/Lab_main.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Lab_main.dir/build.make CMakeFiles/Lab_main.dir/clean
-.PHONY : CMakeFiles/Lab_main.dir/clean
+CMakeFiles/ztas.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ztas.dir/build.make CMakeFiles/ztas.dir/clean
+.PHONY : CMakeFiles/ztas.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

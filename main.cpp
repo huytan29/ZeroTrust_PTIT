@@ -1,74 +1,76 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <httplib.h>
 
-
-//Thong tin cua mot yeu cau truy cap
-struct AccessRequest {
+//Information of Requested Changes:
+/*struct AccessRequest {
     std::string username;
     std::string role;
-    bool devce_trust;
+    bool device_trust;
     std::string resource;
     std::string action;
 };
 
-//Ket qua cua viec danh gia yeu cau truy cap
+//Access Decision Function
 struct AccessDecision {
-    std::string effect; // "allow" hoac "deny"
+    std::string effect;
     std::string reason_code;
 };
 
-
-//Day la Rule giai doan mo phong
-//O giai doan sau, phan nay se duoc thay the bang viec goi OPA
-AccessDecision evaluate_access(const AccessRequest& request) {
-    // Zero Trust: thiet bi khong tin cay thi tu choi truoc
-    if (!request.devce_trust){
+AccessDecision access_decision(const AccessRequest& request) {
+    if(!request.device_trust) {
         return {"DENY", "DEVICE_NOT_TRUSTED"};
     }
-    //TAI LIEU CONG KHAI: MOI NGUOI DUNG HOP LE CO THE DOC
-    if (request.resource == "public" && request.action == "read"){
+    if(request.resource == "public" && request.action == "read") {
         return {"PERMIT", "PUBLIC_READ_ALLOWED"};
     }
-    //Tai lieu noi bo: chi nhung nguoi dung co vai tro quan ly hoac admin moi duoc doc
-    if (request.resource == "internal" && 
-    (request.role == "mamnage" || request.role == "admin") && request.action == "read"){
+    if(request.resource == "internal" && request.role=="manager" ||
+        request.role=="admin" && request.action == "read") {
         return {"PERMIT", "INTERNAL_READ_ALLOWED"};
-    };
-    //TAI LIEU MAT: NHAN VIEN PHAI XAC THUC THEM
-    if (request.resource == "secret" && 
-    request.role == "employee" && 
-    request.action == "read"){
-        return {"STEP_UP", "MFA_REQUIRED_FOR_SECRET"};
     }
-    //MOI TRUONG HOP KHONG KHOP RULE DEU BI TU CHOI
-    return {"DENY", "NO_MATCHING_RULE"};
-
+    if(request.resource == "secret" && request.role=="employee" && request.action == "read") {
+        return {"STEP_UP", "SECRET_READ_STEP_UP_REQUIRED"};
+    }
+    if(request.resource == "secret" && request.role=="admin" && request.action == "read") {
+        return {"PERMIT", "SECRET_ADMIN_READ_ALLOWED"};
+    }
+    return {"DENY", "ACCESS_DENIED"};
 }
 
-void print_result(const AccessRequest& request, const AccessDecision& decision){
-    std::cout << "User: " << request.username << std::endl;
-    std::cout << "Role: " << request.role << std::endl;
-    std::cout << "Device Trust: " << (request.devce_trust ? "true" : "false") << std::endl;
-    std::cout << "Resource: " << request.resource << std::endl;
-    std::cout << "Action: " << request.action << std::endl;
-    std::cout << "Decision: " << decision.effect << std::endl;
-    std::cout << "Reason: " << decision.reason_code << std::endl;   
-    std::cout << "-----------------------------" << std::endl;
+void print_access_decision(const AccessRequest& request ,const AccessDecision& decision) {
+    std::cout << "USER: " << request.username << std::endl;
+    std::cout << "ROLE: " << request.role << std::endl;
+    std::cout << "DEVICE TRUST: " << (request.device_trust ? "TRUE" : "FALSE") << std::endl;
+    std::cout << "RESOURCE: " << request.resource << std::endl;
+    std::cout << "ACTION: " << request.action << std::endl;
+    std::cout << "Access Decision: " << decision.effect << std::endl;
+    std::cout << "Reason Code: " << decision.reason_code << std::endl;
 }
 
 int main(){
     std::vector<AccessRequest> requests = {
         {"alice", "employee", true, "public", "read"},
-        {"bob", "employee", true, "internal", "read"},
-        {"carol", "admin", true, "internal", "read"},
-        {"dave", "employee", false, "public", "read"},
-        {"eve", "employee", true, "secret", "read"},
-        {"frank", "manager", true, "secret", "read"}
+        {"bob", "manager", true, "internal", "read"},
+        {"charlie", "employee", true, "secret", "read"},
+        {"dave", "admin", true, "secret", "read"},
+        {"eve", "employee", false, "public", "read"}
     };
-    for (const auto& request : requests) {
-        auto decision = evaluate_access(request);
-        print_result(request, decision);
+
+} */
+
+int main(){
+    httplib::Server server;
+
+    server.Get("/health", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_content(R"({service: "ztas", status: "UP"})", "application/json");
+    });
+
+    std::cout << "ZTAS service is running on http://localhost:8020" << std::endl;
+
+    if(!server.listen("0.0.0.0", 8020)){
+        std::cerr << "Cannot start ZTAS on port 8020 " << std::endl;
+        return 1;
     }
     return 0;
 }

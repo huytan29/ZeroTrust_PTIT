@@ -1,0 +1,1 @@
+/usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/ztas.dir/main.cpp.o -o ztas  -framework CFNetwork -framework CoreFoundation -framework Security -framework CFNetwork -framework CoreFoundation /Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib/libz.tbd /opt/homebrew/lib/libssl.dylib /opt/homebrew/lib/libcrypto.dylib

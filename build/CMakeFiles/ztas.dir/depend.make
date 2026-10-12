@@ -1,2 +1,2 @@
-# Empty dependencies file for Lab_main.
+# Empty dependencies file for ztas.
 # This may be replaced when dependencies are built.

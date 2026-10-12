@@ -1,4 +1,11 @@
 services:
+  ztas:
+    build:
+      context: .
+    container_name: ztas
+    expose:
+      - "8020"
+
   nginx:
     image: nginx:alpine
     container_name: ztas-nginx
@@ -6,9 +13,5 @@ services:
       - "8090:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./nginx/html:/usr/share/nginx/html:ro
-
-device_trusted:
-    image: alpine
-    container_name: device_trusted
-    
+    depends_on:
+      - ztas
