@@ -5,7 +5,8 @@ RUN apt-get update \
         cmake \
         g++ \
         make \
-        libcpp-httplib-dev
+        libcpp-httplib-dev \
+        nlohmann-json3-dev
 
 WORKDIR /app
 

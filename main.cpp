@@ -1,76 +1,172 @@
-#include <iostream>
-#include <string>
-#include <vector>
 #include <httplib.h>
+#include <nlohmann/json.hpp>
 
-//Information of Requested Changes:
-/*struct AccessRequest {
-    std::string username;
-    std::string role;
-    bool device_trust;
-    std::string resource;
-    std::string action;
-};
+#include <cstdlib>
+#include <iostream>
+#include <optional>
+#include <string>
 
-//Access Decision Function
-struct AccessDecision {
-    std::string effect;
-    std::string reason_code;
-};
+using json = nlohmann::json;
 
-AccessDecision access_decision(const AccessRequest& request) {
-    if(!request.device_trust) {
-        return {"DENY", "DEVICE_NOT_TRUSTED"};
-    }
-    if(request.resource == "public" && request.action == "read") {
-        return {"PERMIT", "PUBLIC_READ_ALLOWED"};
-    }
-    if(request.resource == "internal" && request.role=="manager" ||
-        request.role=="admin" && request.action == "read") {
-        return {"PERMIT", "INTERNAL_READ_ALLOWED"};
-    }
-    if(request.resource == "secret" && request.role=="employee" && request.action == "read") {
-        return {"STEP_UP", "SECRET_READ_STEP_UP_REQUIRED"};
-    }
-    if(request.resource == "secret" && request.role=="admin" && request.action == "read") {
-        return {"PERMIT", "SECRET_ADMIN_READ_ALLOWED"};
-    }
-    return {"DENY", "ACCESS_DENIED"};
+std::string get_env_or_default(const char* name, const std::string& fallback) {
+    const char* value = std::getenv(name);
+    return value != nullptr ? value : fallback;
 }
 
-void print_access_decision(const AccessRequest& request ,const AccessDecision& decision) {
-    std::cout << "USER: " << request.username << std::endl;
-    std::cout << "ROLE: " << request.role << std::endl;
-    std::cout << "DEVICE TRUST: " << (request.device_trust ? "TRUE" : "FALSE") << std::endl;
-    std::cout << "RESOURCE: " << request.resource << std::endl;
-    std::cout << "ACTION: " << request.action << std::endl;
-    std::cout << "Access Decision: " << decision.effect << std::endl;
-    std::cout << "Reason Code: " << decision.reason_code << std::endl;
+void send_json(httplib::Response& response, int status, const json& body) {
+    response.status = status;
+    response.set_content(body.dump(), "application/json");
 }
 
-int main(){
-    std::vector<AccessRequest> requests = {
-        {"alice", "employee", true, "public", "read"},
-        {"bob", "manager", true, "internal", "read"},
-        {"charlie", "employee", true, "secret", "read"},
-        {"dave", "admin", true, "secret", "read"},
-        {"eve", "employee", false, "public", "read"}
+std::optional<json> query_opa(const std::string& opa_host, const json& input) {
+    httplib::Client client(opa_host, 8181);
+
+    client.set_connection_timeout(2, 0);
+    client.set_read_timeout(3, 0);
+
+    json request_body = {
+        {"input", input}
     };
 
-} */
+    auto result = client.Post(
+        "/v1/data/zerotrust/authz/decision",
+        request_body.dump(),
+        "application/json"
+    );
 
-int main(){
+    if (!result || result->status != 200) {
+        return std::nullopt;
+    }
+
+    try {
+        json payload = json::parse(result->body);
+
+        if (!payload.contains("result")) {
+            return std::nullopt;
+        }
+
+        return payload["result"];
+    } catch (const json::parse_error&) {
+        return std::nullopt;
+    }
+}
+
+void handle_document_request(
+    const httplib::Request& request,
+    httplib::Response& response,
+    const std::string& opa_host,
+    const std::string& resource_id,
+    const std::string& sensitivity,
+    const std::string& document_content
+) {
+    if (!request.has_header("X-Demo-Role") ||
+        !request.has_header("X-Device-ID")) {
+        send_json(response, 400, {
+            {"error", "MISSING_ACCESS_CONTEXT"},
+            {"message", "X-Demo-Role va X-Device-ID la bat buoc"}
+        });
+        return;
+    }
+
+    json input = {
+        {"subject", {
+            {"username", "demo-user"},
+            {"role", request.get_header_value("X-Demo-Role")}
+        }},
+        {"device", {
+            {"id", request.get_header_value("X-Device-ID")}
+        }},
+        {"resource", {
+            {"id", resource_id},
+            {"sensitivity", sensitivity}
+        }},
+        {"action", "read"}
+    };
+
+    auto decision = query_opa(opa_host, input);
+
+    if (!decision.has_value()) {
+        send_json(response, 502, {
+            {"error", "OPA_UNAVAILABLE"},
+            {"message", "Khong the lay quyet dinh tu OPA"}
+        });
+        return;
+    }
+
+    std::string effect = decision->value("effect", "DENY");
+
+    json result = *decision;
+    result["resource_id"] = resource_id;
+
+    if (effect == "PERMIT") {
+        result["content"] = document_content;
+        send_json(response, 200, result);
+        return;
+    }
+
+    if (effect == "STEP_UP") {
+        send_json(response, 403, result);
+        return;
+    }
+
+    send_json(response, 403, result);
+}
+
+int main() {
+    const std::string opa_host = get_env_or_default("OPA_HOST", "localhost");
+
     httplib::Server server;
 
-    server.Get("/health", [](const httplib::Request& req, httplib::Response& res) {
-        res.set_content(R"({service: "ztas", status: "UP"})", "application/json");
+    server.Get("/health", [&opa_host](
+        const httplib::Request&,
+        httplib::Response& response
+    ) {
+        send_json(response, 200, {
+            {"service", "ztas"},
+            {"status", "UP"},
+            {"opa_host", opa_host}
+        });
     });
 
-    std::cout << "ZTAS service is running on http://localhost:8020" << std::endl;
+    server.Get("/documents/public", [&opa_host](
+        const httplib::Request& request,
+        httplib::Response& response
+    ) {
+        handle_document_request(
+            request, response, opa_host,
+            "public_document", "public",
+            "Noi dung tai lieu cong khai"
+        );
+    });
 
-    if(!server.listen("0.0.0.0", 8020)){
-        std::cerr << "Cannot start ZTAS on port 8020 " << std::endl;
+    server.Get("/documents/internal", [&opa_host](
+        const httplib::Request& request,
+        httplib::Response& response
+    ) {
+        handle_document_request(
+            request, response, opa_host,
+            "internal_document", "internal",
+            "Noi dung tai lieu noi bo"
+        );
+    });
+
+    server.Get("/documents/secret", [&opa_host](
+        const httplib::Request& request,
+        httplib::Response& response
+    ) {
+        handle_document_request(
+            request, response, opa_host,
+            "secret_document", "secret",
+            "Noi dung tai lieu mat gia lap"
+        );
+    });
+
+    std::cout << "ZTAS is running at http://localhost:8020" << std::endl;
+
+    if (!server.listen("0.0.0.0", 8020)) {
+        std::cerr << "Cannot start ZTAS on port 8020" << std::endl;
         return 1;
     }
+
     return 0;
 }
